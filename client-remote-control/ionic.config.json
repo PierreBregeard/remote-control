@@ -1,0 +1,7 @@
+{
+  "name": "client-remote-control",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

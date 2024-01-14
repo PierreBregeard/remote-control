@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+.clickable:active {
+    transform: scale(.9);
+    transition: transform .1s ease-in-out;
+}
+
+* {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.1rem;
+    color: #e1e1e1;
+}
+
+ion-icon {
+    color: #e1e1e1;
+}
