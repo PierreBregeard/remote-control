@@ -38,7 +38,9 @@ const App: React.FC = () => {
     useEffect(() => {
         (async () => {
             const { value } = await Preferences.get({ key: "ip" });
-            setIp(JSON.parse(value || ""))
+            if (value) {
+                setIp(JSON.parse(value));
+            }
         })()
     }, []);
 
