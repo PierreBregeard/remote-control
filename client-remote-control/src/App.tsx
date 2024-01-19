@@ -44,7 +44,7 @@ const App: React.FC = () => {
         })()
     }, []);
 
-    function fecthWTimeout(url: string,timeout = 2000) {
+    function fetchTimeout(url: string,timeout = 2000) {
         return Promise.race([
             fetch(url),
             new Promise((_, reject) =>
@@ -59,15 +59,15 @@ const App: React.FC = () => {
       setIsConnected(false)
       await presentLoading("Connexion en cours...");
       try {
-          await fecthWTimeout(API(), 2000);
+          await fetchTimeout(API(), 2000);
           await dismissLoading();
           setIsConnected(true);
           await Preferences.set({ key: "ip", value: JSON.stringify(ip) });
-      } catch {
+      } catch(e) {
             await dismissLoading();
             await presentAlert({
                 header: "Erreur",
-                message: "Impossible de se connecter au serveur",
+                message: (e as Error).message || "Impossible de se connecter au serveur",
                 buttons: ["OK"]
             });
       }
