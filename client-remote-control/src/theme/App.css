@@ -11,6 +11,10 @@
     color: #e1e1e1;
 }
 
+#connexionStateDiv {
+    transition: background-color .5s ease-in-out;
+}
+
 ion-icon {
     color: #e1e1e1;
 }

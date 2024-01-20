@@ -22,29 +22,24 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import "./theme/App.css";
-import {useEffect, useState} from "react";
-import {Preferences} from "@capacitor/preferences";
+import {useCallback, useEffect, useState} from "react";
 import {caretForward, playBack, playForward, volumeHigh, volumeLow} from "ionicons/icons";
 
 setupIonicReact();
 
 const App: React.FC = () => {
 
-  const [ip, setIp] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
+  const [connexionState, setConnexionState] = useState<"connected" | "loading" | "notConnected">("notConnected");
   const [presentLoading, dismissLoading] = useIonLoading();
   const [presentAlert] = useIonAlert();
 
     useEffect(() => {
         (async () => {
-            const { value } = await Preferences.get({ key: "ip" });
-            if (value) {
-                setIp(JSON.parse(value));
-            }
-        })()
+            await connect()
+        })();
     }, []);
 
-    function fetchTimeout(url: string,timeout = 2000) {
+    function fetchTimeout(url: string, timeout = 2000) {
         return Promise.race([
             fetch(url),
             new Promise((_, reject) =>
@@ -53,42 +48,48 @@ const App: React.FC = () => {
         ]);
     }
 
-    const API = () => `http://${ip}`;
-
-  async function connect() {
-      setIsConnected(false)
-      await presentLoading("Connexion en cours...");
-      try {
-          await fetchTimeout(API(), 2000);
-          await dismissLoading();
-          setIsConnected(true);
-          await Preferences.set({ key: "ip", value: JSON.stringify(ip) });
-      } catch(e) {
+    async function fecth_api(endpoint = "/ping", isPresentLoading = true) {
+        setConnexionState("loading");
+        if (isPresentLoading) {
+            await presentLoading("Connexion en cours...");
+        }
+        try {
+            // await fetchTimeout(endpoint, 2000);
+            await fetchTimeout(`http://192.168.100.150:5000${endpoint}`, 2000);
+            await dismissLoading();
+            setConnexionState("connected")
+        } catch(e) {
+            setConnexionState("notConnected");
             await dismissLoading();
             await presentAlert({
                 header: "Erreur",
                 message: (e as Error).message || "Impossible de se connecter au serveur",
                 buttons: ["OK"]
             });
-      }
-  }
+        }
+    }
+
+    const connect = useCallback(async () => {
+        await fecth_api();
+    }, []);
 
   async function send_key(k: string) {
-        await fetch(`${API()}/press_key?key=${k}`);
+        await fecth_api(`/press_key?key=${k}`, false);
   }
 
   async function send_volume(v: number) {
-        await fetch(`${API()}/set_volume?vol=${v}`);
+        await fecth_api(`/set_volume?vol=${v}`, false);
+  }
+
+  function getDivColor() {
+    return {
+        "connected": "green",
+        "loading": "orange",
+        "notConnected": "red",
+    }[connexionState]
   }
 
   function main() {
-      if (!isConnected) {
-          return (
-              <IonRow className="ion-justify-content-center">
-                  <IonButton onClick={connect}>Connexion</IonButton>
-              </IonRow>
-          );
-      }
       return (
             <>
                 <IonRow className="ion-justify-content-center">
@@ -107,9 +108,9 @@ const App: React.FC = () => {
                         display: "flex",
                         justifyContent: "space-evenly",
                     }}>
-                        <IonIcon className="clickable" onClick={() => send_key("next_track")} icon={playBack} size={"large"} />
+                        <IonIcon className="clickable" onClick={() => send_key("previous_track")} icon={playBack} size={"large"} />
                         <IonIcon className="clickable" onClick={() => send_key("pp_media")} icon={caretForward} size={"large"} />
-                        <IonIcon className="clickable" onClick={() => send_key("previous_track")} icon={playForward} size={"large"} />
+                        <IonIcon className="clickable" onClick={() => send_key("next_track")} icon={playForward} size={"large"} />
                     </div>
                 </IonRow>
             </>
@@ -127,23 +128,11 @@ const App: React.FC = () => {
                 alignItems: "center",
               gap: "2em"
           }}>
-              <IonRow className="ion-justify-content-center">
-                  <IonCol>
-                      <IonItem style={{
-                          borderRadius: ".3em",
-                      }}>
-                          <IonInput onIonInput={(e) => {
-                              setIp(e.detail.value!)
-                              setIsConnected(false)
-                          }} label="IP" value={ip} placeholder="ex: 192.168.1.6:5000"/>
-                      </IonItem>
-                  </IonCol>
-              </IonRow>
-              <IonRow className="clickable" style={{
+              <IonRow id="connexionStateDiv" className="clickable" style={{
                   width: "80vw",
                   height: "2em",
                   borderRadius: "1em",
-                  backgroundColor: isConnected ? "green": "red",
+                  backgroundColor: getDivColor(),
               }} onClick={connect}>
               </IonRow>
               {main()}
