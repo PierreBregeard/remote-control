@@ -2,9 +2,14 @@ import flask
 from flask_cors import CORS
 from pathlib import Path
 from PC import PC
+from ResourcePath import RelativePath
+from os import chdir
 
 
-static_folder = Path(__file__).parent.parent / Path("client-remote-control/dist")
+chdir(Path(__file__).parent.parent)
+static_folder = RelativePath.resource_path(
+    Path("client-remote-control/dist")
+)
 app = flask.Flask(__name__, static_folder=static_folder)
 CORS(app)
 
@@ -27,7 +32,6 @@ def press_key():
         PC.previous_track()
     elif key == "pp_media":
         PC.pp_media()
-
     return ""
 
 @app.route("/", defaults={"path": ""})
