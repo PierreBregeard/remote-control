@@ -54,8 +54,8 @@ const App: React.FC = () => {
             await presentLoading("Connexion en cours...");
         }
         try {
-            // await fetchTimeout(endpoint, 2000);
-            await fetchTimeout(`http://192.168.100.150:5000${endpoint}`, 2000);
+            await fetchTimeout(endpoint, 2000);
+            // await fetchTimeout(`http://192.168.100.150:5000${endpoint}`, 2000);
             await dismissLoading();
             setConnexionState("connected")
         } catch(e) {
